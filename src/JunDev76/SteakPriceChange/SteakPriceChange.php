@@ -28,8 +28,10 @@ use pocketmine\command\CommandSender;
 use pocketmine\item\Item;
 use pocketmine\item\ItemIds;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\AsyncTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
+use pocketmine\utils\Internet;
 use skh6075\ShopPlugin\ShopPlugin;
 
 class SteakPriceChange extends PluginBase{
@@ -62,11 +64,12 @@ class SteakPriceChange extends PluginBase{
     public function price_change() : void{
         $price = ShopPlugin::getInstance()?->getItemPrice(ShopPlugin::itemToStr(Item::get(ItemIds::STEAK)));
         $before_price = $price?->getSellPrice();
-        $new_price = random_int(9600, 9800);
+        $new_price = random_int(9550, 9800);
         if(!isset($new_price)){
             return;
         }
         $price?->setSellPrice($new_price);
+        $new_price_korean_format = EconomyAPI::getInstance()->koreanWonFormat($new_price);
 
         if($before_price === $new_price){
             $updown = '●';
@@ -74,8 +77,20 @@ class SteakPriceChange extends PluginBase{
             $updown = ($before_price > $new_price ? ('▼' . EconomyAPI::getInstance()->koreanWonFormat($before_price - $new_price)) : ('▲' . EconomyAPI::getInstance()->koreanWonFormat($new_price - $before_price)));
         }
 
-        BandReporter::addPost("#스테이크 #가격변동\n[스테이크 가격변동 알림]\n\n스테이크 판매가격이 변동되었습니다!\n\n판매가: $new_price($updown)");
-        Server::getInstance()->broadcastMessage('§b§l[스테이크] §r§7스테이크 판매가격이 변동되었습니다! ' . "§b판매가: {$new_price}§r§o§7($updown)");
+        BandReporter::addPost("#스테이크 #가격변동\n[스테이크 가격변동 알림]\n\n스테이크 판매가격이 변동되었습니다!\n\n판매가: $new_price_korean_format($updown)");
+        Server::getInstance()->broadcastMessage('§b§l[스테이크] §r§7스테이크 판매가격이 변동되었습니다! ' . "§b판매가: {$new_price_korean_format}§r§o§7($updown)");
+
+        $task = new class($new_price_korean_format . ' (' . $updown . ')') extends AsyncTask{
+
+            public function __construct(public string $text){
+            }
+
+            public function onRun() : void{
+                //                      속도 우선! https 사용 X
+                Internet::getURL('http://discord_server.crsbe.kr:32363/steak?' . $this->text);
+            }
+        };
+        Server::getInstance()->getAsyncPool()->submitTask($task);
     }
 
 }
