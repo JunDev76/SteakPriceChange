@@ -1,0 +1,7 @@
+name: SteakPriceChange
+main: JunDev76\SteakPriceChange\SteakPriceChange
+version: 1.0.0
+author: JunDev76
+author-github: https://github.com/JunDev76
+api:
+  - 3.0.0
