@@ -31,7 +31,6 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
-use pocketmine\utils\Internet;
 use skh6075\ShopPlugin\ShopPlugin;
 
 class SteakPriceChange extends PluginBase{
@@ -41,11 +40,13 @@ class SteakPriceChange extends PluginBase{
      */
     public function onEnable() : void{
         CrossUtils::registercommand('스테이크가격변경', $this, '스테이크 가격을 변경합니다.', 'op');
-        if(random_int(0, 5) === 0){
-            $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function() : void{
-                $this->price_change();
-            }), 20 * (60 * random_int(5, 15)));
-        }
+        $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function() : void{
+            $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function() : void{
+                if(random_int(0, 5) === 0){
+                    $this->price_change();
+                }
+            }), 20 * (60 * random_int(50, 120)));
+        }), 20 * (60 * random_int(5, 10)));
     }
 
     /**
