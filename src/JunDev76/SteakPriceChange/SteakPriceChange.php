@@ -86,8 +86,17 @@ class SteakPriceChange extends PluginBase{
             }
 
             public function onRun() : void{
-                //                      속도 우선! https 사용 X
-                Internet::getURL('http://discord_server.crsbe.kr:32363/steak?' . $this->text);
+                $ch = curl_init(); // 리소스 초기화
+
+                //      속도 우선! https 사용 X
+                $url = 'http://discord_server.crsbe.kr:32363/steak?' . urlencode($this->text);
+
+                // 옵션 설정
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);
+                curl_exec($ch);
+
+                curl_close($ch);  // 리소스 해제
             }
         };
         Server::getInstance()->getAsyncPool()->submitTask($task);
